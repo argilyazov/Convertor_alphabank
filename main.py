@@ -12,6 +12,7 @@ def get_func(command):
         return empty_method
 
 
+# [["фамилия"],["имя"],["отчество"]] -> [["ФИО"]] #corr_columns[i]
 def split_column(df):
     splitter = ' '
     values = df[0]
@@ -28,7 +29,18 @@ def split_column(df):
 
 
 def zip_columns(df):
-    pass
+    result = []
+    values = []
+    cars = pd.concat(df).dropna().sort_index().astype('str').to_list()
+    for car in cars:
+        values.append(car)
+        if (car.replace('.', '').isdigit()):
+            model = ' '.join(values)
+            values.clear()
+            result.append(model)
+    result = [result]  # -> список [["",""]]
+    # result = [[result[x]] for x in range(len(result))] #-> список списков [[""],[""]]
+    return result
 
 
 def empty_method():
@@ -40,8 +52,10 @@ commands_data = [('SPLIT', ['ФИО'], ['Фамилия', 'Имя', 'Отчес�
                  ('RENAME', ['Диагноз (расшифровка)'], ['Диагноз']),
                  ('RENAME', ['Диагноз (код)'], ['Код диагноза']),
                  ('RENAME', ['Тип исследования'], ['Категория исследования']),
-                 ('RENAME', ['Адрес прописки пациента'], ['Адрес проживания'])]
-filename = 'C:\\Users\\Арсель\\Downloads\\файл для проекта по конвертации.xlsx'
+                 ('RENAME', ['Адрес прописки пациента'], ['Адрес проживания']),
+                 ('ZIP', ["марка", "модель", "год"], ["машины"])]
+# ('ZIP', ["Дата взятия анализа","Время взятия анализа"], ["Дата и время взятия анализа"] )] пока не работает(
+filename = 'start.xlsx'
 df_input = pd.read_excel(filename, 'исходный формат')
 corr_fields = pd.read_excel(filename, 'нужный формат').columns
 result = pd.DataFrame()
@@ -60,6 +74,9 @@ for command_data in commands_data:
     func = get_func(command)
     df = [df_input[x] for x in input]
     corr_columns = func(df)
+    for i in range(len(corr_columns[0]), df_input.shape[0]):
+        for column in corr_columns:
+            column.append(' ')
     for i in range(len(corr)):
         result[corr[i]] = corr_columns[i]
 
@@ -73,4 +90,4 @@ for field in corr_fields:
             result[field] = df_input[field]
         else:
             result[field] = [' ' for i in range(len(result))]
-result.to_excel('C:\\Users\\Арсель\\PycharmProjects\\Convertor\\res.xlsx', 'нужный формат')
+result.to_excel('result.xlsx', 'нужный формат')
